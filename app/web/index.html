@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ITSM Dashboard Agent</title><link rel="stylesheet" href="/web/styles.css"></head>
+<body>
+<header class="top">
+  <div class="brand"><b>ITSM Dashboard Agent</b><span class="sub">ITSM exports → verified KPI dashboard · v0.3</span></div>
+  <ol class="steps" id="steps" aria-label="Wizard steps">
+    <li data-s="1">Goal</li><li data-s="2">Data &amp; privacy</li><li data-s="3">Understand</li><li data-s="4">KPIs</li><li data-s="5">Look</li><li data-s="6">Build &amp; verify</li><li data-s="7">Insights</li><li data-s="8">Export</li>
+  </ol>
+  <span class="mode" id="mode" title="" role="status" aria-live="polite">…</span>
+</header>
+<div class="wrap">
+  <section class="chat">
+    <div class="tools">
+      <label class="btn">Upload CSV files<input type="file" id="files" accept=".csv,text/csv" multiple hidden></label>
+      <button class="btn ghost" id="mock">Use sample data</button>
+      <label class="btn ghost" title="CSV with columns kpi,month,value from the official monthly report">Compare with report<input type="file" id="reffile" accept=".csv,text/csv" hidden></label>
+      <button class="btn ghost" id="reset">Start over</button>
+    </div>
+    <div class="msgs" id="msgs" role="log" aria-live="polite" aria-label="Conversation"></div>
+    <form class="input" id="form"><textarea id="text" rows="2" aria-label="Your message" placeholder="Type your answer… (Enter to send, Shift+Enter for a new line)"></textarea><button class="btn" id="sendbtn">Send</button></form>
+  </section>
+  <section class="preview">
+    <div class="pbar"><b>Dashboard preview</b>
+      <span class="spacer"></span>
+      <a class="btn ghost" id="open" href="/dashboard.html" target="_blank">Open in new window</a>
+      <a class="btn ghost" id="dlhtml" href="/api/download/dashboard">Download HTML</a>
+      <a class="btn ghost" id="dlbrief" href="/api/download/brief">BRIEF.md</a>
+      <a class="btn ghost" href="/api/download/verify">verify.md</a>
+      <a class="btn ghost" href="/api/download/spec">spec.json</a>
+    </div>
+    <div class="vtabs" id="vtabs" role="toolbar" aria-label="Dashboard versions"><button class="vt on" data-v="">● Working</button><span id="vlist"></span><span class="spacer"></span><input id="vname" placeholder="Version name" aria-label="Version name" maxlength="60"><button class="btn ghost" id="vsave">Save version</button><button class="btn ghost" id="vrestore" hidden>Make this the working version</button></div>
+    <iframe id="frame" src="/dashboard.html" title="Dashboard preview"></iframe>
+  </section>
+</div>
+<script src="/web/app.js"></script>
+</body></html>

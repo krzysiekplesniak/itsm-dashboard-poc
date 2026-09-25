@@ -1,0 +1,19 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: No protected names in the public repository
+        run: node scripts/check-public.mjs
+      - name: Plugin self-test (Python scripts)
+        run: bash plugin/scripts/selftest.sh
+      - name: Plugin engine (Node CLI) — full quick mode on synthetic data
+        run: node plugin/scripts/itsm.mjs all --ws /tmp/ws plugin/examples/mock-3csv/*.csv
+      - name: App end-to-end (offline wizard, HTTP)
+        run: cd app && npm ci && npm test

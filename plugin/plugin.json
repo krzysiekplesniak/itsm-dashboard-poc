@@ -1,0 +1,31 @@
+{
+  "name": "itsm-dashboard-kit",
+  "description": "ITSM / Service Desk KPI dashboards from CSV exports (skills in SKILL.md format).",
+  "version": "0.3.0",
+  "author": {
+    "name": "ITSM Dashboard Kit contributors"
+  },
+  "keywords": [
+    "itsm",
+    "service-desk",
+    "kpi",
+    "dashboard"
+  ],
+  "skills": [
+    "skills/itsm-anonymize",
+    "skills/itsm-brief",
+    "skills/itsm-dashboard",
+    "skills/itsm-dashboard-design",
+    "skills/itsm-data-reader",
+    "skills/itsm-design-reference",
+    "skills/itsm-domain",
+    "skills/itsm-grill-me",
+    "skills/itsm-html-builder",
+    "skills/itsm-insights",
+    "skills/itsm-intent-router",
+    "skills/itsm-kpi-analyzer",
+    "skills/itsm-learn",
+    "skills/itsm-verify"
+  ],
+  "mcpServers": ".mcp.json"
+}

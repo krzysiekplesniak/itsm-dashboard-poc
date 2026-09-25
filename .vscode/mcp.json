@@ -1,0 +1,10 @@
+{
+  "servers": {
+    "itsm-engine": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${workspaceFolder}/plugin/mcp/server.mjs"],
+      "env": { "ITSM_WORKSPACE": "${workspaceFolder}/itsm-workspace" }
+    }
+  }
+}

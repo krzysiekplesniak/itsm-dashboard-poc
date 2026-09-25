@@ -1,0 +1,25 @@
+{
+  "name": "itsm-dashboard-chat",
+  "version": "0.3.0",
+  "private": true,
+  "description": "ITSM Dashboard agent on GitHub Copilot (SDK) \u2014 engine, tools and knowledge from ../plugin (ITSM Dashboard Kit)",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "start:offline": "node server/index.js --offline",
+    "start:legacy": "node legacy/server/index.js",
+    "test": "node scripts/e2e-offline.mjs",
+    "eval:copilot": "node scripts/eval-copilot.mjs",
+    "smoke:copilot": "node scripts/smoke-copilot.mjs",
+    "mcp": "node ../plugin/mcp/server.mjs"
+  },
+  "dependencies": {
+    "@github/copilot-sdk": "^1.0.14",
+    "chart.js": "^4.5.1",
+    "papaparse": "^5.5.3",
+    "zod": "^4.6.5"
+  }
+}

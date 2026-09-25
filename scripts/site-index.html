@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ITSM Dashboard Kit</title>
+<style>
+:root{--bg:#F4F5F7;--s:#fff;--t:#1D2433;--t2:#4A5264;--b:#D9DCE1;--a:#5B3FB0}
+@media (prefers-color-scheme:dark){:root{--bg:#15181D;--s:#1E2229;--t:#E8EAEE;--t2:#AEB4BF;--b:#343A44;--a:#A08BE6}}
+body{margin:0;background:var(--bg);color:var(--t);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:980px;margin:0 auto;padding:32px 20px 60px;display:grid;gap:28px}
+h1{font-size:30px;margin:0}h2{font-size:19px;margin:0 0 10px}p{margin:0;max-width:70ch;color:var(--t2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{background:var(--s);border:1px solid var(--b);border-radius:10px;padding:16px;display:grid;gap:8px;align-content:start}
+.card b{font-size:16px}a.btn{display:inline-block;background:var(--a);color:#fff;text-decoration:none;border-radius:8px;padding:8px 12px;font-weight:600;justify-self:start}
+a.lnk{color:var(--a)}code{background:var(--s);border:1px solid var(--b);border-radius:5px;padding:1px 5px;font-size:13px}
+ol{margin:0;padding-left:20px;color:var(--t2)}
+</style></head><body><main>
+<header><h1>ITSM Dashboard Kit</h1><p>From ITSM exports (CSV) to a verified, clickable KPI dashboard. The numbers are computed by code, the knowledge of how to build a Service Desk dashboard lives in skills, and you choose how to use it: chat with the agent or install the plugin.</p></header>
+<section class="grid">
+  <div class="card"><b>1 · Agent on GitHub Copilot</b><p>Web app with a chat: upload exports, answer a few questions, get the dashboard. Runs in GitHub Codespaces on your Copilot licence.</p><a class="btn" href="https://codespaces.new/{{REPO}}?quickstart=1">Open in Codespaces</a><ol><li>In the terminal: <code>copilot login</code></li><li><code>cd app &amp;&amp; npm start</code></li><li>Open the forwarded port 3000</li></ol></div>
+  <div class="card"><b>2 · Plugin (skills + engine)</b><p>The same knowledge for Claude (Cowork, Claude Code) or GitHub Copilot (VS Code, CLI). The only difference from a plain LLM: the plugin is installed.</p><a class="btn" href="itsm-dashboard-kit.plugin">Download the plugin</a><p>Copilot CLI: <code>copilot plugin install {{REPO}}:plugin</code></p></div>
+  <div class="card"><b>3 · Dashboard in your browser</b><p>No server, no upload: paste a spec, drop your CSV files, the page computes every KPI locally.</p><a class="btn" href="dashboard.html">Open the dashboard app</a><p><a class="lnk" href="spec-example.json">Example spec</a> · <a class="lnk" href="demo.html">Demo on synthetic data</a></p></div>
+  <div class="card"><b>4 · Chat without skills</b><p>For assistants that cannot load skills: attach the knowledge file and paste the prompt.</p><p><a class="lnk" href="ITSM_KNOWLEDGE.md">ITSM_KNOWLEDGE.md</a> · <a class="lnk" href="PROMPT.md">PROMPT.md</a></p></div>
+</section>
+<section class="card"><h2>Data rules</h2><p>Only anonymised exports. Every file passes a personal-data check first; uncertain columns wait for your decision. Nothing on this site uploads data: the browser app works offline. Examples use synthetic data only.</p></section>
+<p><a class="lnk" href="https://github.com/{{REPO}}">Source on GitHub</a></p>
+</main></body></html>

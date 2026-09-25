@@ -1,0 +1,11 @@
+{
+  "name": "ITSM Dashboard agent (GitHub Copilot)",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "features": { "ghcr.io/devcontainers/features/python:1": { "version": "3.12" } },
+  "postCreateCommand": "cd app && npm ci && npm install -g @github/copilot",
+  "postAttachCommand": "echo 'ITSM Dashboard agent: run  copilot login  once, then  cd app && npm start'",
+  "forwardPorts": [3000],
+  "portsAttributes": { "3000": { "label": "ITSM Dashboard agent", "onAutoForward": "openBrowser" } },
+  "customizations": { "vscode": { "extensions": ["GitHub.copilot", "GitHub.copilot-chat"] } },
+  "hostRequirements": { "cpus": 2 }
+}

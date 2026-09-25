@@ -1,0 +1,278 @@
+{
+  "title": "Service Desk KPI dashboard",
+  "subtitle": "First Call Resolution · P3 & P4 SLAs · Customer satisfaction",
+  "audience": "Senior Service Manager, monthly management review",
+  "dataLabel": "SYNTHETIC mock data (examples/mock-3csv)",
+  "mock": true,
+  "defaultMonth": "latest",
+  "trendMonths": 12,
+  "lowVolume": 10,
+  "sources": {
+    "sla": {
+      "file": "Incident - SLA P3_P4.csv",
+      "label": "Incidents with SLA (P3/P4)",
+      "id": "Incident ID",
+      "date": "Resolved Date",
+      "dateFormat": "auto",
+      "filters": [
+        {
+          "column": "SLA Name",
+          "op": "startsWith",
+          "value": "Service Desk"
+        }
+      ],
+      "detailColumns": [
+        "Incident ID",
+        "Priority",
+        "SLA Name",
+        "SLA Status",
+        "Assigned Group",
+        "Resolved Date"
+      ],
+      "breakdown": "Assigned Group"
+    },
+    "fcr": {
+      "file": "FCR.csv",
+      "label": "First Call Resolution tickets",
+      "id": "Incident ID",
+      "date": "Resolved Date",
+      "dateFormat": "auto",
+      "filters": [],
+      "detailColumns": [
+        "Incident ID",
+        "Priority",
+        "Assigned Group",
+        "SLA met?",
+        "Resolved Date"
+      ],
+      "breakdown": "Assigned Group"
+    },
+    "csat": {
+      "file": "Customer Satisfaction.csv",
+      "label": "Survey responses",
+      "id": "Incident ID",
+      "date": "Survey Date",
+      "dateFormat": "auto",
+      "filters": [],
+      "detailColumns": [
+        "Incident ID",
+        "Score",
+        "Assigned Group",
+        "Survey Date"
+      ],
+      "breakdown": "Assigned Group"
+    }
+  },
+  "kpis": [
+    {
+      "id": "fcr",
+      "label": "First Call Resolution",
+      "source": "fcr",
+      "type": "rate",
+      "column": "SLA met?",
+      "positive": [
+        "Yes",
+        "Y",
+        "Met",
+        "True",
+        "1"
+      ],
+      "target": 70,
+      "direction": "higher",
+      "unit": "%",
+      "decimals": 1,
+      "how": "Share of tickets with 'SLA met?' = Yes among all tickets resolved in the month (FCR.csv)."
+    },
+    {
+      "id": "sla_p3",
+      "label": "P3 SLA",
+      "source": "sla",
+      "type": "rate",
+      "column": "SLA Status",
+      "positive": [
+        "Met"
+      ],
+      "negative": [
+        "Missed"
+      ],
+      "where": [
+        {
+          "column": "SLA Name",
+          "op": "contains",
+          "value": "P3"
+        }
+      ],
+      "target": 90,
+      "direction": "higher",
+      "unit": "%",
+      "decimals": 1,
+      "how": "Met ÷ (Met + Missed) for SLAs whose name starts with 'Service Desk' and contains 'P3', by resolved month."
+    },
+    {
+      "id": "sla_p4",
+      "label": "P4 SLA",
+      "source": "sla",
+      "type": "rate",
+      "column": "SLA Status",
+      "positive": [
+        "Met"
+      ],
+      "negative": [
+        "Missed"
+      ],
+      "where": [
+        {
+          "column": "SLA Name",
+          "op": "contains",
+          "value": "P4"
+        }
+      ],
+      "target": 90,
+      "direction": "higher",
+      "unit": "%",
+      "decimals": 1,
+      "how": "Met ÷ (Met + Missed) for SLAs whose name starts with 'Service Desk' and contains 'P4', by resolved month."
+    },
+    {
+      "id": "sla_p3p4",
+      "label": "P3 & P4 SLA",
+      "source": "sla",
+      "type": "rate",
+      "column": "SLA Status",
+      "positive": [
+        "Met"
+      ],
+      "negative": [
+        "Missed"
+      ],
+      "target": 90,
+      "direction": "higher",
+      "unit": "%",
+      "decimals": 1,
+      "how": "Met ÷ (Met + Missed) for all SLAs whose name starts with 'Service Desk', by resolved month."
+    },
+    {
+      "id": "csat",
+      "label": "Customer satisfaction",
+      "source": "csat",
+      "type": "mean",
+      "column": "Score",
+      "divide": 2,
+      "target": 4.2,
+      "direction": "higher",
+      "unit": "/ 5",
+      "decimals": 2,
+      "how": "Average survey score ÷ 2 (scale 1–10 → 1–5), by survey month."
+    }
+  ],
+  "panels": [
+    {
+      "id": "p_fcr",
+      "title": "First Call Resolution",
+      "cards": [
+        {
+          "kpi": "fcr",
+          "show": "value",
+          "label": "First Call Resolution"
+        },
+        {
+          "kpi": "fcr",
+          "show": "missed",
+          "label": "Missed FCR",
+          "unit": "incidents"
+        },
+        {
+          "kpi": "fcr",
+          "show": "count",
+          "label": "Total",
+          "unit": "incidents"
+        }
+      ],
+      "chart": {
+        "kpis": [
+          "fcr"
+        ],
+        "style": "area"
+      }
+    },
+    {
+      "id": "p_sla",
+      "title": "P3 & P4 SLAs",
+      "cards": [
+        {
+          "kpi": "sla_p3",
+          "show": "value"
+        },
+        {
+          "kpi": "sla_p4",
+          "show": "value"
+        },
+        {
+          "kpi": "sla_p3p4",
+          "show": "value"
+        }
+      ],
+      "chart": {
+        "kpis": [
+          "sla_p3",
+          "sla_p4",
+          "sla_p3p4"
+        ],
+        "style": "line"
+      }
+    },
+    {
+      "id": "p_csat",
+      "title": "Customer satisfaction",
+      "cards": [
+        {
+          "kpi": "csat",
+          "show": "value",
+          "label": "Average rating"
+        },
+        {
+          "kpi": "csat",
+          "show": "count",
+          "label": "Responded surveys",
+          "unit": "surveys"
+        },
+        {
+          "kpi": "csat",
+          "show": "count_ytd",
+          "label": "Responded surveys (this year)",
+          "unit": "surveys"
+        }
+      ],
+      "chart": {
+        "kpis": [
+          "csat"
+        ],
+        "style": "area"
+      }
+    }
+  ],
+  "insights": [],
+  "assumptions": [
+    "Column names follow the e-mail description; confirm with the real export.",
+    "Months are assigned by the resolved date (SLA, FCR) and the survey date (CSAT)."
+  ],
+  "globalFilters": [
+    {
+      "id": "group",
+      "label": "Assigned group",
+      "columns": {
+        "fcr": "Assigned Group",
+        "sla": "Assigned Group",
+        "csat": "Assigned Group"
+      }
+    },
+    {
+      "id": "priority",
+      "label": "Priority",
+      "columns": {
+        "fcr": "Priority",
+        "sla": "Priority"
+      }
+    }
+  ]
+}

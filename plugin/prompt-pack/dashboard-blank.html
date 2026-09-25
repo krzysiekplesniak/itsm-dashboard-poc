@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ITSM KPI dashboard</title>
+<!--
+  ITSM Dashboard Kit - dashboard template (single file, offline, no external libraries).
+  The build script replaces the three placeholders below with JSON. Numbers are computed by the
+  JavaScript in this file from the embedded rows (or from CSV files dropped onto the page).
+  If precomputed results from the build script are embedded, the page compares both and shows a badge.
+-->
+<style>
+:root{
+  /* Lab 2 status tokens */
+  --status-critical:#C62828; --status-high:#EF6C00; --status-medium:#B7791F; --status-low:#558B2F;
+  --status-met:#2E7D32; --status-pending:#1565C0; --status-neutral:#5F6368;
+  /* surfaces & text */
+  --bg:#F4F5F7; --surface:#FFFFFF; --panel-head:#E9EBEF; --border:#D9DCE1; --grid:#ECEEF1;
+  --text:#1D2433; --text-2:#4A5264; --text-3:#6B7280; --accent:#5B3FB0;
+  /* series (identity only, fixed order) */
+  --s1:#5B3FB0; --s2:#1F6FB5; --s3:#D9822B; --s4:#0F8B8D;
+  --radius:10px; --gap:16px;
+  --font-kpi:600 34px/1.05 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-label:600 14px/1.3 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-body:400 14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-meta:400 12px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font:var(--font-body)}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--status-pending);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1440px;margin:0 auto;padding:20px 24px 40px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px;margin-bottom:16px}
+header.top h1{font:600 22px/1.2 system-ui,sans-serif;margin:0}
+header.top .sub{color:var(--text-2);margin-top:4px}
+header.top .meta{font:var(--font-meta);color:var(--text-3);margin-top:4px}
+.tools{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tools select,.tools button{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:7px 10px;cursor:pointer}
+.badge{font:var(--font-meta);padding:4px 9px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);white-space:nowrap}
+.badge.ok{border-color:#9CCB9F;color:var(--status-met);background:#F1F8F1}
+.badge.bad{border-color:#E7A3A3;color:var(--status-critical);background:#FDF1F1}
+.banner{display:flex;gap:12px;align-items:center;background:#FFF8E1;border:1px solid #F2D27A;border-radius:8px;padding:8px 12px;margin-bottom:14px}
+.banner button{margin-left:auto;border:0;background:none;font-size:18px;cursor:pointer;line-height:1}
+section.block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:var(--gap)}
+section.block>h2{font:var(--font-label);margin:0;padding:10px 14px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center}
+section.block>h2 .hint{font:var(--font-meta);color:var(--text-3);font-weight:400}
+.insights{padding:10px 14px 14px;display:grid;gap:8px}
+.ins{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:8px;background:#FAFAFB;border-left:4px solid var(--status-neutral)}
+.ins.critical{border-left-color:var(--status-critical)} .ins.warning{border-left-color:var(--status-high)}
+.ins.met{border-left-color:var(--status-met)} .ins.info{border-left-color:var(--status-pending)}
+.ins .tag{font:600 11px/1.6 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.04em;min-width:78px}
+.ins.critical .tag{color:var(--status-critical)} .ins.warning .tag{color:var(--status-high)} .ins.met .tag{color:var(--status-met)} .ins.info .tag{color:var(--status-pending)}
+.ins button.link{margin-left:auto;border:0;background:none;color:var(--status-pending);cursor:pointer;white-space:nowrap}
+.gfilters{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:var(--gap)}
+.gfilters .g{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.gfilters .g b{font:600 12px/1 system-ui,sans-serif;color:var(--text-2);margin-right:2px}
+.gfilters button{font:12px/1 system-ui,sans-serif;border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:5px 9px;cursor:pointer;color:var(--text-2)}
+.gfilters button[aria-pressed=true]{background:var(--status-pending);border-color:var(--status-pending);color:#fff}
+.gfilters .clear{margin-left:auto;border:0;background:none;color:var(--status-pending);text-decoration:underline}
+.panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:var(--gap);margin-bottom:var(--gap)}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;min-width:0}
+.panel h3{font:var(--font-label);margin:0;padding:10px 14px;background:var(--panel-head);border-radius:var(--radius) var(--radius) 0 0}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:12px}
+.card{border:1px solid var(--border);border-radius:8px;padding:10px 10px 9px;cursor:pointer;position:relative;background:var(--surface);min-width:0;display:flex;flex-direction:column;gap:2px}
+.card:hover{border-color:#B9BEC7;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card .top{display:flex;gap:6px;align-items:flex-start}
+.card .lbl{font:600 12px/1.3 system-ui,sans-serif;color:var(--text-2);flex:1}
+.card .info{flex:none;border:1px solid var(--border);border-radius:50%;width:18px;height:18px;padding:0;font:600 11px/16px system-ui;text-align:center;color:var(--text-3);background:var(--surface);cursor:help}
+.card .val{font:var(--font-kpi);margin-top:4px;color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap}
+.card .val small{font:500 13px/1 system-ui,sans-serif;color:var(--text-3);margin-left:3px}
+.card .val small.below{display:block;margin:2px 0 0}
+.card .per{font:var(--font-meta);color:var(--text-3)}
+.card .delta{font:var(--font-meta);color:var(--text-3)}
+.card .delta.up{color:var(--status-met)} .card .delta.down{color:var(--status-critical)}
+.card.critical .val{color:var(--status-critical)} .card.warning .val{color:var(--status-high)}
+.card .st{font-weight:600}
+.lowvol{font:var(--font-meta);color:var(--status-high)}
+.chart{padding:4px 12px 12px}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.chart .legend{display:flex;gap:14px;flex-wrap:wrap;font:var(--font-meta);color:var(--text-2);padding:2px 4px 6px}
+.chart .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.chart .legend i.t{background:none;border-top:2px dashed var(--text-3);height:0}
+.axis{font:11px system-ui,sans-serif;fill:var(--text-3)}
+.pt{cursor:pointer}
+#tip{position:fixed;z-index:50;pointer-events:none;background:#1D2433;color:#fff;font:var(--font-meta);padding:7px 9px;border-radius:6px;max-width:280px;opacity:0;transition:opacity .08s}
+#tip b{font-weight:600}
+.details .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:5px 12px;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--text);color:#fff;border-color:var(--text)}
+.chip{font:var(--font-meta);background:#E8F0FA;color:var(--status-pending);border:1px solid #B8CFEA;border-radius:999px;padding:4px 8px;display:inline-flex;gap:6px;align-items:center}
+.chip button{border:0;background:none;cursor:pointer;color:inherit;padding:0}
+.details input[type=search]{border:1px solid var(--border);border-radius:8px;padding:6px 10px;min-width:220px}
+.details .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.details .right button{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:6px 10px;cursor:pointer}
+.tblwrap{overflow:auto;max-height:520px}
+table.tbl{border-collapse:collapse;width:100%;font:13px/1.4 system-ui,sans-serif}
+table.tbl th{position:sticky;top:0;background:#F7F8FA;text-align:left;font-weight:600;border-bottom:1px solid var(--border);padding:7px 10px;white-space:nowrap;cursor:pointer;user-select:none}
+table.tbl th[aria-sort=ascending]::after{content:" ▲";font-size:10px} table.tbl th[aria-sort=descending]::after{content:" ▼";font-size:10px}
+table.tbl td{border-bottom:1px solid var(--grid);padding:6px 10px;white-space:nowrap;font-variant-numeric:tabular-nums}
+table.tbl tr.neg td{background:#FDF3F3}
+.more{padding:10px 14px;font:var(--font-meta);color:var(--text-3);display:flex;gap:10px;align-items:center}
+.more button{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:5px 10px;cursor:pointer}
+footer .how{padding:10px 14px 14px;display:grid;gap:6px;font:var(--font-meta);color:var(--text-2)}
+footer .how b{color:var(--text)}
+#drop{position:fixed;inset:0;background:rgba(244,245,247,.97);display:none;align-items:center;justify-content:center;z-index:40}
+#drop .box{border:2px dashed #9AA1AD;border-radius:14px;padding:32px 36px;background:var(--surface);max-width:560px;text-align:center}
+#drop ul{text-align:left;font:var(--font-meta);color:var(--text-2)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (max-width:760px){.cards{grid-template-columns:1fr 1fr}.wrap{padding:14px}.tools{margin-left:0}}
+@media print{.tools,.banner,.details .bar,.more,#tip{display:none!important}body{background:#fff}.tblwrap{max-height:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1 id="title"></h1>
+      <div class="sub" id="subtitle"></div>
+      <div class="meta" id="meta"></div>
+    </div>
+    <div class="tools">
+      <label class="sr" for="month">Month</label>
+      <select id="month" aria-label="Month"></select>
+      <span class="badge" id="check" title="Numbers computed in this page vs. the build script">checking…</span>
+      <button id="btnLoad" type="button" title="Load other CSV files">Load CSV</button>
+      <button id="btnPrint" type="button">Print</button>
+    </div>
+  </header>
+  <div class="banner" id="mock" hidden role="status"><span>⚠️ <b>Mock data.</b> Numbers are synthetic and do not describe a real service.</span><button type="button" aria-label="Close" id="mockX">×</button></div>
+
+  <section class="block" aria-labelledby="h-ins">
+    <h2 id="h-ins">What the data says <span class="hint" id="insHint"></span></h2>
+    <div class="insights" id="insights"></div>
+  </section>
+
+  <div class="gfilters" id="gfilters" role="group" aria-label="Filters" hidden></div>
+  <div class="panels" id="panels"></div>
+
+  <section class="block details" aria-labelledby="h-det" id="details">
+    <h2 id="h-det">Details <span class="hint">click a card or chart point to filter · click a column to sort</span></h2>
+    <div class="bar">
+      <div class="tabs" role="tablist" id="tabs"></div>
+      <span id="ctx"></span>
+      <div class="right">
+        <label class="sr" for="q">Search</label>
+        <input type="search" id="q" placeholder="Search in rows…">
+        <button type="button" id="btnCsv">Export CSV</button>
+      </div>
+    </div>
+    <div class="tblwrap"><table class="tbl" id="tbl"></table></div>
+    <div class="more" id="more"></div>
+  </section>
+
+  <footer class="block" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
+    <section>
+      <h2 style="font:var(--font-label);margin:0;padding:10px 14px;border-bottom:1px solid var(--border)">How the numbers are calculated</h2>
+      <div class="how" id="how"></div>
+    </section>
+  </footer>
+</div>
+<div id="tip" role="tooltip"></div>
+<div id="live" class="sr" aria-live="polite"></div>
+<div id="specbox" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:45;align-items:center;justify-content:center"><div class="box" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:760px;width:92%"><h2 style="margin-top:0">Paste the dashboard spec</h2><p>Paste the <code>spec.json</code> produced by the assistant, then drop the CSV files. Everything stays in this browser.</p><label class="sr" for="specText">spec.json</label><textarea id="specText" style="width:100%;height:260px;font:12px ui-monospace,monospace"></textarea><p><button type="button" id="specGo" style="border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--text);color:#fff;cursor:pointer">Use this spec</button> <span id="specErr" style="color:var(--status-critical)"></span></p></div></div>
+<div id="drop"><div class="box"><h2 style="margin-top:0">Drop the CSV files here</h2><p>The page computes every number locally. Nothing is uploaded.</p><ul id="dropList"></ul><p><input type="file" id="file" multiple accept=".csv,text/csv"></p></div></div>
+
+<script>
+let SPEC = null;
+let DATA = null;
+const PRECOMPUTED = null;
+
+/* ------------------------------------------------------------ helpers */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = s => String(s ?? "").trim().toLowerCase();
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const mLabel = m => m ? MONTHS[+m.slice(5,7)-1] + " " + m.slice(0,4) : "";
+const mShort = m => MONTHS[+m.slice(5,7)-1] + " " + m.slice(2,4);
+const KPI = id => SPEC.kpis.find(k => k.id === id);
+const fmt = (k, v) => v == null || isNaN(v) ? "n/a" : v.toLocaleString("en-GB", {minimumFractionDigits: k.decimals ?? 1, maximumFractionDigits: k.decimals ?? 1});
+const fmtInt = v => v == null ? "n/a" : Math.round(v).toLocaleString("en-GB");
+const ISO = /^(\d{4})-(\d{1,2})-(\d{1,2})/, SLASH = /^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/;
+
+function detectOrder(values){
+  let a = 0, b = 0, iso = 0, sl = 0;
+  for (const raw of values.slice(0, 5000)) {
+    const v = String(raw ?? "").trim();
+    if (ISO.test(v)) { iso++; continue; }
+    const m = v.match(SLASH);
+    if (m) { sl++; if (+m[1] > 12) a++; if (+m[2] > 12) b++; }
+  }
+  if (iso >= sl) return "ISO";
+  if (a && !b) return "DMY";
+  if (b && !a) return "MDY";
+  return "DMY";
+}
+function monthOf(raw, order){
+  const v = String(raw ?? "").trim();
+  let y, mo, m = v.match(ISO);
+  if (m) { y = +m[1]; mo = +m[2]; }
+  else {
+    m = v.match(SLASH); if (!m) return null;
+    y = +m[3]; if (y < 100) y += 2000;
+    mo = order === "MDY" ? +m[1] : +m[2];
+  }
+  if (mo < 1 || mo > 12) return null;
+  return y + "-" + String(mo).padStart(2, "0");
+}
+function match(val, f){
+  const v = norm(val), op = f.op || "equals";
+  const t = (Array.isArray(f.value) ? f.value : [f.value]).map(norm);
+  switch (op) {
+    case "equals": return v === t[0];
+    case "notEquals": return v !== t[0];
+    case "in": return t.includes(v);
+    case "notIn": return !t.includes(v);
+    case "startsWith": return t.some(x => v.startsWith(x));
+    case "contains": return t.some(x => v.includes(x));
+    case "notEmpty": return v !== "";
+  }
+  return false;
+}
+function num(raw){
+  let v = String(raw ?? "").trim().replace(/\s/g, "");
+  if (!v) return null;
+  if ((v.match(/,/g) || []).length === 1 && !v.includes(".")) v = v.replace(",", ".");
+  const x = Number(v); return isNaN(x) ? null : x;
+}
+function parseCSV(text){
+  text = text.replace(/^﻿/, "");
+  const first = text.split(/\r?\n/, 1)[0];
+  const delim = [",", ";", "\t", "|"].sort((a, b) => first.split(b).length - first.split(a).length)[0];
+  const rows = []; let row = [], cell = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i+1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+    else if (c === '"') q = true;
+    else if (c === delim) { row.push(cell); cell = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && text[i+1] === "\n") i++; row.push(cell); rows.push(row); row = []; cell = ""; }
+    else cell += c;
+  }
+  if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(x => String(x).trim() !== ""));
+}
+
+/* ------------------------------------------------------------ compute (mirrors build_dashboard.py) */
+let R = null;      // results
+let KEPT = {};     // per source: [{m, r}]
+function compute(){
+  const res = {months: [], kpis: {}, notes: [], flags: {}};
+  const all = new Set();
+  KEPT = {};
+  for (const [sid, s] of Object.entries(SPEC.sources)) {
+    const d = DATA[sid]; if (!d) continue;
+    const cols = d.columns, di = cols.indexOf(s.date);
+    const fi = (s.filters || []).map(f => [cols.indexOf(f.column), f]);
+    const gi = (SPEC.globalFilters || []).filter(g => SEL[g.id]?.length && g.columns?.[sid] && cols.includes(g.columns[sid])).map(g => [cols.indexOf(g.columns[sid]), SEL[g.id].map(norm)]);
+    const order = d.dateOrder || detectOrder(d.rows.map(r => r[di]));
+    d.dateOrder = order;
+    const kept = []; let bad = 0;
+    for (const r of d.rows) {
+      if (!fi.every(([i, f]) => match(r[i], f))) continue;
+      if (!gi.every(([i, vals]) => vals.includes(norm(r[i])))) continue;
+      const m = monthOf(r[di], order);
+      if (!m) { bad++; continue; }
+      kept.push({m, r});
+    }
+    if (bad) res.notes.push(`${d.file}: ${bad} rows skipped (date “${s.date}” empty or unreadable).`);
+    KEPT[sid] = kept;
+  }
+  for (const k of SPEC.kpis) {
+    const d = DATA[k.source]; if (!d) { res.kpis[k.id] = {}; continue; }
+    const cols = d.columns, ci = k.column ? cols.indexOf(k.column) : -1;
+    const wi = (k.where || []).map(f => [cols.indexOf(f.column), f]);
+    const pos = (k.positive || []).map(norm), neg = k.negative ? k.negative.map(norm) : null;
+    const per = {}; let excl = 0;
+    const flags = new Map();
+    for (const it of KEPT[k.source] || []) {
+      const r = it.r;
+      if (!wi.every(([i, f]) => match(r[i], f))) continue;
+      const b = per[it.m] ||= {num: 0, den: 0, sum: 0, n: 0};
+      if (k.type === "rate") {
+        const v = norm(r[ci]);
+        if (pos.includes(v)) { b.num++; b.den++; flags.set(r, 1); }
+        else if (neg === null || neg.includes(v)) { b.den++; flags.set(r, 0); }
+        else excl++;
+      } else if (k.type === "mean") {
+        const x = num(r[ci]); if (x === null) { excl++; continue; }
+        b.sum += x / (k.divide || 1); b.n++; flags.set(r, x / (k.divide || 1) >= (k.target ?? -Infinity) ? 1 : 0);
+      } else { b.n++; flags.set(r, 1); }
+    }
+    const out = {};
+    for (const m of Object.keys(per).sort()) {
+      const b = per[m];
+      if (k.type === "rate") { if (!b.den) continue; out[m] = {value: b.num / b.den * 100, num: b.num, den: b.den, missed: b.den - b.num, count: b.den}; }
+      else if (k.type === "mean") { if (!b.n) continue; out[m] = {value: b.sum / b.n, count: b.n}; }
+      else out[m] = {value: b.n, count: b.n};
+      all.add(m);
+    }
+    if (excl) res.notes.push(`KPI ${k.id}: ${excl} rows excluded (value not in the positive/negative lists or not numeric).`);
+    res.kpis[k.id] = out; res.flags[k.id] = flags;
+  }
+  res.months = [...all].sort();
+  return res;
+}
+function crossCheck(){
+  const el = $("#check");
+  if (!PRECOMPUTED) { el.textContent = "computed in browser"; el.className = "badge"; return; }
+  let diff = 0, n = 0;
+  for (const [kid, per] of Object.entries(PRECOMPUTED.kpis)) for (const [m, v] of Object.entries(per)) {
+    n++; const w = R.kpis[kid]?.[m];
+    if (!w || Math.abs(w.value - v.value) > 1e-9 || w.count !== v.count) diff++;
+  }
+  el.textContent = diff ? `⚠ ${diff} of ${n} values differ` : `✓ numbers consistent (${n} checks)`;
+  el.className = "badge " + (diff ? "bad" : "ok");
+  el.title = "Every KPI value was computed twice: by the build script (Python) and in this page (JavaScript).";
+}
+
+/* ------------------------------------------------------------ status & insights */
+function status(k, v){
+  if (k.target == null || v == null) return "neutral";
+  const margin = k.type === "mean" ? 0.1 : 2, higher = (k.direction || "higher") === "higher";
+  const gap = higher ? v - k.target : k.target - v;
+  return gap < 0 ? "critical" : gap < margin ? "warning" : "met";
+}
+const prevMonth = m => { const i = R.months.indexOf(m); return i > 0 ? R.months[i-1] : null; };
+function insights(month){
+  const out = [];
+  const pm = prevMonth(month);
+  for (const k of SPEC.kpis) {
+    const cur = R.kpis[k.id]?.[month]; if (!cur) { out.push({lvl: "info", kpi: k.id, text: `<b>${esc(k.label)}</b>: no data for ${mLabel(month)}.`}); continue; }
+    const st = status(k, cur.value), prev = pm && R.kpis[k.id]?.[pm];
+    const unitGap = k.type === "mean" ? "" : " pp";
+    const delta = prev ? cur.value - prev.value : null;
+    const dTxt = delta == null ? "" : ` (${delta >= 0 ? "+" : "−"}${fmt(k, Math.abs(delta))}${unitGap} vs ${mLabel(pm)})`;
+    if (st === "critical") out.push({lvl: "critical", kpi: k.id, text: `<b>${esc(k.label)}</b> is <b>${fmt(k, cur.value)} ${esc(k.unit || "")}</b>, below the target of ${fmt(k, k.target)}${dTxt}.`});
+    else if (st === "warning") out.push({lvl: "warning", kpi: k.id, text: `<b>${esc(k.label)}</b> is ${fmt(k, cur.value)} ${esc(k.unit || "")}, within ${k.type === "mean" ? "0.1" : "2 pp"} of the target ${fmt(k, k.target)}${dTxt}.`});
+    const drop = k.type === "mean" ? 0.2 : 3;
+    if (delta != null && Math.abs(delta) >= drop) {
+      const bad = ((k.direction || "higher") === "higher") ? delta < 0 : delta > 0;
+      out.push({lvl: bad ? "warning" : "met", kpi: k.id, text: `<b>${esc(k.label)}</b> ${delta < 0 ? "fell" : "rose"} by ${fmt(k, Math.abs(delta))}${unitGap} from ${mLabel(pm)} to ${mLabel(month)}.`});
+    }
+    if (cur.count < (SPEC.lowVolume ?? 10)) out.push({lvl: "info", kpi: k.id, text: `<b>${esc(k.label)}</b> is based on only ${cur.count} records in ${mLabel(month)}: treat the percentage with care.`});
+    if (k.type === "rate" && cur.missed && st !== "met" && !SPEC.sources[k.source].breakdown) out.push({lvl: "info", kpi: k.id, text: `${fmtInt(cur.missed)} ${esc(k.label)} records missed in ${mLabel(month)} — open the list to see which groups are affected.`});
+  }
+  const window12 = R.months.filter(m => m <= month).slice(-(SPEC.trendMonths || 12));
+  for (const k of SPEC.kpis) {
+    const vals = window12.map(m => [m, R.kpis[k.id]?.[m]?.value]).filter(x => x[1] != null);
+    if (vals.length < 3) continue;
+    const best = vals.reduce((a, b) => (b[1] > a[1] ? b : a)), cur = R.kpis[k.id]?.[month]?.value;
+    if (best[0] === month && (k.direction || "higher") === "higher") out.push({lvl: "met", kpi: k.id, text: `<b>${esc(k.label)}</b> in ${mLabel(month)} is the best month of the last ${vals.length}.`});
+  }
+  for (const k of SPEC.kpis) {
+    const higher = (k.direction || "higher") === "higher";
+    const seq = window12.map(m => R.kpis[k.id]?.[m]?.value);
+    // three consecutive moves in the wrong direction
+    const last = seq.slice(-4);
+    if (last.length === 4 && last.every(v => v != null) && [1, 2, 3].every(i => higher ? last[i] < last[i-1] : last[i] > last[i-1]))
+      out.push({lvl: "warning", kpi: k.id, text: `<b>${esc(k.label)}</b> has ${higher ? "declined" : "risen"} three months in a row (${fmt(k, last[0])} → ${fmt(k, last[3])}).`});
+    // same month last year
+    const ly = (+month.slice(0, 4) - 1) + month.slice(4), cur = R.kpis[k.id]?.[month], old = R.kpis[k.id]?.[ly];
+    if (cur && old) { const d = cur.value - old.value; if (fmt(k, Math.abs(d)) !== fmt(k, 0)) out.push({lvl: "info", kpi: k.id, text: `<b>${esc(k.label)}</b>: ${fmt(k, cur.value)} vs ${fmt(k, old.value)} in ${mLabel(ly)} (${d > 0 ? "+" : "−"}${fmt(k, Math.abs(d))}${k.type === "mean" ? "" : " pp"} year on year).`}); }
+    // where the misses concentrate
+    const src = SPEC.sources[k.source], by = src.breakdown, d0 = DATA[k.source];
+    if (by && d0 && d0.columns.includes(by) && k.type === "rate" && cur && cur.missed > 0) {
+      const bi = d0.columns.indexOf(by), fl = R.flags[k.id], cnt = {}, tot = {};
+      for (const it of KEPT[k.source]) if (it.m === month && fl.has(it.r)) { const g = it.r[bi] || "(blank)"; tot[g] = (tot[g] || 0) + 1; if (fl.get(it.r) === 0) cnt[g] = (cnt[g] || 0) + 1; }
+      const top = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
+      if (top) out.push({lvl: "info", kpi: k.id, text: `Most missed <b>${esc(k.label)}</b> in ${mLabel(month)}: <b>${esc(top[0])}</b> — ${fmtInt(top[1])} of ${fmtInt(cur.missed)} misses (${fmt(k, top[1] / tot[top[0]] * 100)} % of that ${esc(by.toLowerCase())}'s records).`});
+    }
+  }
+  const allMet = SPEC.kpis.every(k => status(k, R.kpis[k.id]?.[month]?.value) === "met");
+  const nBad = SPEC.kpis.filter(k => ["critical","warning"].includes(status(k, R.kpis[k.id]?.[month]?.value))).length;
+  const head = allMet ? {lvl: "met", pin: true, text: `All ${SPEC.kpis.length} KPIs meet their targets in ${mLabel(month)}.`} : {lvl: nBad ? "critical" : "info", pin: true, text: `${nBad} of ${SPEC.kpis.length} KPIs are below or near target in ${mLabel(month)}.`};
+  for (const t of SPEC.insights || []) if (!t.month || t.month === month) out.push({lvl: t.level || "info", kpi: t.kpi, text: esc(t.text), note: "analyst"});
+  const rank = {critical: 0, warning: 1, info: 2, met: 3};
+  return [head, ...out.sort((a, b) => rank[a.lvl] - rank[b.lvl])];
+}
+
+/* ------------------------------------------------------------ rendering */
+let MONTH = null, INS_ALL = false, SEL = {};
+function render(){
+  for (const [k, v] of Object.entries(SPEC.theme || {})) if (/^--[a-z0-9-]+$/.test(k) && /^[#a-zA-Z0-9(),.\s%-]+$/.test(v)) document.documentElement.style.setProperty(k, v);
+  document.title = SPEC.title || "KPI dashboard";
+  $("#title").textContent = SPEC.title || "KPI dashboard";
+  $("#subtitle").textContent = SPEC.subtitle || "";
+  const src = Object.values(DATA).map(d => `${d.file} (${d.rows.length.toLocaleString("en-GB")} rows)`).join(" · ");
+  $("#meta").textContent = `${SPEC.dataLabel ? SPEC.dataLabel + " · " : ""}Sources: ${src}`;
+  const sel = $("#month");
+  sel.innerHTML = [...R.months].reverse().map(m => `<option value="${m}">${mLabel(m)}</option>`).join("");
+  if (!MONTH || !R.months.includes(MONTH)) MONTH = (SPEC.defaultMonth && SPEC.defaultMonth !== "latest" && R.months.includes(SPEC.defaultMonth)) ? SPEC.defaultMonth : R.months[R.months.length - 1];
+  sel.value = MONTH;
+  renderFilters(); renderInsights(); renderPanels(); renderHow(); renderTabs(); renderTable();
+}
+function renderInsights(){
+  const items = insights(MONTH);
+  $("#insHint").textContent = `${mLabel(MONTH)} · ${items.filter(i => i.lvl === "critical" || i.lvl === "warning").length} need attention`;
+  const names = {critical: "Act now", warning: "Watch", info: "Note", met: "On track"};
+  const lim = INS_ALL ? items.length : 6;
+  $("#insights").innerHTML = items.slice(0, lim).map((it, i) => `<div class="ins ${it.lvl}"><span class="tag">${names[it.lvl]}</span><span>${it.text}${it.note ? ' <span class="badge">analyst note</span>' : ""}</span>${it.kpi ? `<button class="link" type="button" data-kpi="${it.kpi}">Show records →</button>` : ""}</div>`).join("")
+    + (items.length > 6 ? `<button type="button" class="link" id="insMore" style="border:0;background:none;color:var(--status-pending);cursor:pointer;justify-self:start">${INS_ALL ? "Show fewer" : `Show all ${items.length} findings`}</button>` : "");
+  const im = $("#insMore"); if (im) im.onclick = () => { INS_ALL = !INS_ALL; renderInsights(); };
+  $("#insights").querySelectorAll("button[data-kpi]").forEach(b => b.onclick = () => openDetails(b.dataset.kpi, MONTH));
+}
+function cardValue(c, k, cur){
+  if (!cur) return {v: "n/a", unit: ""};
+  switch (c.show) {
+    case "missed": return {v: fmtInt(cur.missed), unit: c.unit || "records"};
+    case "count": return {v: fmtInt(cur.count), unit: c.unit || "records"};
+    case "count_ytd": {
+      const y = MONTH.slice(0, 4);
+      const tot = R.months.filter(m => m.startsWith(y) && m <= MONTH).reduce((s, m) => s + (R.kpis[k.id]?.[m]?.count || 0), 0);
+      return {v: fmtInt(tot), unit: c.unit || "records"};
+    }
+    default: return {v: fmt(k, cur.value), unit: c.unit || k.unit || ""};
+  }
+}
+function renderPanels(){
+  const host = $("#panels"); host.innerHTML = "";
+  const pm = prevMonth(MONTH);
+  for (const p of SPEC.panels) {
+    const el = document.createElement("section"); el.className = "panel"; el.setAttribute("aria-label", p.title);
+    let cards = "";
+    for (const c of p.cards || []) {
+      const k = KPI(c.kpi), cur = R.kpis[k.id]?.[MONTH], prev = pm ? R.kpis[k.id]?.[pm] : null;
+      const {v, unit} = cardValue(c, k, cur);
+      const isVal = !c.show || c.show === "value";
+      const st = isVal ? status(k, cur?.value) : "neutral";
+      let delta = "";
+      if (isVal && cur && prev) { const d = cur.value - prev.value; const zero = fmt(k, Math.abs(d)) === fmt(k, 0); const good = ((k.direction || "higher") === "higher") ? d >= 0 : d <= 0;
+        delta = `<div class="delta ${zero ? "" : good ? "up" : "down"}">${zero ? "= no change" : (d > 0 ? "▲ " : "▼ ") + fmt(k, Math.abs(d)) + (k.type === "mean" ? "" : " pp")} vs ${mShort(pm)}</div>`; }
+      const target = isVal && k.target != null ? ` · target ${fmt(k, k.target)}` : "";
+      const low = cur && cur.count < (SPEC.lowVolume ?? 10) ? `<div class="lowvol">low volume (${cur.count})</div>` : "";
+      const per = c.show === "count_ytd" ? "This year" : mLabel(MONTH);
+      const icon = st === "critical" ? "⛔" : st === "warning" ? "⚠️" : st === "met" ? "✓" : "";
+      const aria = `${c.label || k.label}, ${per}: ${v} ${unit}${target}. ${st === "critical" ? "Below target." : ""} Press Enter to see records.`;
+      const stTxt = st === "critical" ? `<span class="st" style="color:var(--status-critical)">⛔ below target</span> · ` : st === "warning" ? `<span class="st" style="color:var(--status-high)">⚠ near target</span> · ` : st === "met" ? `<span class="st" style="color:var(--status-met)">✓</span> ` : "";
+      const ask = esc(JSON.stringify({ type: "card", kpi: k.id, label: c.label || k.label, show: c.show || "value", month: MONTH, value: v, unit, filters: SEL }));
+      cards += `<div class="card ${st}" role="button" tabindex="0" data-kpi="${k.id}" data-ask="${ask}" aria-label="${esc(aria)}">
+        <div class="top"><div class="lbl">${esc(c.label || k.label)}</div><button type="button" class="info" data-how="${esc(k.how || "")}" aria-label="How is ${esc(k.label)} calculated?">i</button></div>
+        <div class="val">${v}<small class="${unit.length > 3 ? "below" : ""}">${esc(unit)}</small></div>
+        <div class="per">${stTxt}${per}${target}</div>${delta}${low}</div>`;
+    }
+    el.innerHTML = `<h3>${esc(p.title)}</h3><div class="cards">${cards}</div>${p.chart ? `<div class="chart" id="ch_${p.id}" data-ask="${esc(JSON.stringify({ type: "chart", panel: p.title, kpis: p.chart.kpis, month: MONTH, filters: SEL }))}"></div>` : ""}`;
+    host.appendChild(el);
+    if (p.chart) drawChart($(`#ch_${p.id}`), p.chart, p.title);
+  }
+  host.querySelectorAll(".card").forEach(c => {
+    c.onclick = () => openDetails(c.dataset.kpi, MONTH);
+    c.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDetails(c.dataset.kpi, MONTH); } };
+  });
+  host.querySelectorAll(".info").forEach(i => { const show = e => tip(e, `<b>How calculated</b><br>${esc(i.dataset.how)}`);
+    i.onmouseenter = show; i.onfocus = show; i.onmouseleave = hideTip; i.onblur = hideTip; i.onclick = e => { e.stopPropagation(); show(e); }; });
+}
+function drawChart(host, ch, title){
+  const W = 640, H = 230, L = 44, Rr = 12, T = 12, B = 28;
+  const months = R.months.filter(m => m <= MONTH).slice(-(SPEC.trendMonths || 12));
+  const ks = ch.kpis.map(KPI);
+  const vals = [];
+  ks.forEach(k => { months.forEach(m => { const v = R.kpis[k.id]?.[m]?.value; if (v != null) vals.push(v); }); if (k.target != null) vals.push(k.target); });
+  if (!vals.length) { host.innerHTML = `<p class="axis" style="padding:30px;text-align:center">No data in this range</p>`; return; }
+  let lo = Math.min(...vals), hi = Math.max(...vals);
+  const pad = (hi - lo) * 0.12 || 1; lo -= pad; hi += pad;
+  if (ks[0].unit === "%") { hi = Math.min(100, hi); lo = Math.max(0, lo); }
+  const x = i => L + (months.length === 1 ? (W - L - Rr) / 2 : i * (W - L - Rr) / (months.length - 1));
+  const y = v => T + (hi - v) / (hi - lo) * (H - T - B);
+  const colors = ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)"];
+  let g = "";
+  for (let i = 0; i <= 4; i++) { const v = lo + (hi - lo) * i / 4; g += `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text class="axis" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${fmt(ks[0], v)}</text>`; }
+  months.forEach((m, i) => { if (months.length <= 13 || i % 2 === 0) g += `<text class="axis" x="${x(i)}" y="${H - 8}" text-anchor="middle">${mShort(m)}</text>`; });
+  const tgt = ks.find(k => k.target != null);
+  if (tgt) g += `<line x1="${L}" x2="${W - Rr}" y1="${y(tgt.target)}" y2="${y(tgt.target)}" stroke="var(--text-3)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  ks.forEach((k, si) => {
+    const pts = months.map((m, i) => [i, R.kpis[k.id]?.[m]?.value]).filter(p => p[1] != null);
+    if (!pts.length) return;
+    const d = pts.map((p, j) => `${j ? "L" : "M"}${x(p[0])},${y(p[1])}`).join("");
+    if (ch.style === "area" && ks.length === 1) g += `<path d="${d}L${x(pts[pts.length-1][0])},${H - B}L${x(pts[0][0])},${H - B}Z" fill="${colors[si]}" opacity=".12"/>`;
+    g += `<path d="${d}" fill="none" stroke="${colors[si]}" stroke-width="2" stroke-linejoin="round"/>`;
+    pts.forEach(p => { const m = months[p[0]], sel = m === MONTH;
+      g += `<circle class="pt" cx="${x(p[0])}" cy="${y(p[1])}" r="${sel ? 5.5 : 4}" fill="${sel ? colors[si] : "var(--surface)"}" stroke="${colors[si]}" stroke-width="2" data-k="${k.id}" data-m="${m}" tabindex="-1"/>`;
+      if (ks.length === 1 && (sel || months.length <= 12)) g += `<text class="axis" x="${x(p[0])}" y="${y(p[1]) - 9}" text-anchor="middle" style="fill:var(--text-2)">${fmt(k, p[1])}</text>`; });
+    // invisible wide hit targets
+    pts.forEach(p => g += `<circle class="pt hit" cx="${x(p[0])}" cy="${y(p[1])}" r="12" fill="transparent" data-k="${k.id}" data-m="${months[p[0]]}"/>`);
+  });
+  const legend = (ks.length > 1 ? ks.map((k, i) => `<span><i style="background:${colors[i]}"></i>${esc(k.label)}</span>`).join("") : "") + (tgt ? `<span><i class="t"></i>Target ${fmt(tgt, tgt.target)}${tgt.unit === "%" ? " %" : ""}</span>` : "");
+  const desc = ks.map(k => `${k.label}: ` + months.map(m => `${mShort(m)} ${fmt(k, R.kpis[k.id]?.[m]?.value)}`).join(", ")).join(". ");
+  host.innerHTML = `<div class="legend">${legend}</div><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)} trend, last ${months.length} months. ${esc(desc)}">${g}</svg>`;
+  host.querySelectorAll(".hit").forEach(c => {
+    c.onmouseenter = e => { const k = KPI(c.dataset.k), v = R.kpis[k.id][c.dataset.m]; tip(e, `<b>${esc(k.label)}</b> · ${mLabel(c.dataset.m)}<br>${fmt(k, v.value)} ${esc(k.unit || "")}${k.target != null ? ` (target ${fmt(k, k.target)})` : ""}<br>based on ${fmtInt(v.count)} records${v.missed != null ? `, ${fmtInt(v.missed)} missed` : ""}<br><i>click to select this month</i>`); };
+    c.onmouseleave = hideTip;
+    c.onclick = () => { MONTH = c.dataset.m; $("#month").value = MONTH; hideTip(); rerender(); openDetails(c.dataset.k, MONTH, true); };
+  });
+}
+function renderHow(){
+  const s = Object.entries(SPEC.sources).map(([sid, s]) => `<div><b>${esc(s.label || sid)}</b> — file “${esc(s.file)}”, month by “${esc(s.date)}”${(s.filters || []).length ? ", only rows where " + s.filters.map(f => `“${esc(f.column)}” ${esc(f.op)} “${esc(Array.isArray(f.value) ? f.value.join(", ") : f.value)}”`).join(" and ") : ""}.</div>`).join("");
+  const k = SPEC.kpis.map(k => `<div><b>${esc(k.label)}</b>: ${esc(k.how || "")}${k.target != null ? ` Target ${fmt(k, k.target)}.` : ""}</div>`).join("");
+  const a = (SPEC.assumptions || []).map(x => `<div>⚠️ ${esc(x)}</div>`).join("");
+  const n = (R.notes || []).map(x => `<div>ℹ️ ${esc(x)}</div>`).join("");
+  $("#how").innerHTML = s + k + a + n + `<div style="color:var(--text-3)">All numbers are computed in this page from the source rows. ${PRECOMPUTED ? "They were also computed by the build script; the badge at the top shows whether both agree." : ""}</div>`;
+}
+
+/* ------------------------------------------------------------ details table */
+let TAB = null, CTX = null, SORT = {col: null, dir: 1}, LIMIT = 200;
+function renderTabs(){
+  const ids = Object.keys(SPEC.sources).filter(s => DATA[s]);
+  if (!TAB || !ids.includes(TAB)) TAB = ids[0];
+  $("#tabs").innerHTML = ids.map(s => `<button type="button" role="tab" aria-selected="${s === TAB}" data-s="${s}">${esc(SPEC.sources[s].label || s)}</button>`).join("");
+  $("#tabs").querySelectorAll("button").forEach(b => { b.onclick = () => { TAB = b.dataset.s; CTX = null; LIMIT = 200; renderTabs(); renderTable(); }; });
+  $("#tabs").onkeydown = e => { if (!["ArrowLeft", "ArrowRight"].includes(e.key)) return; const i = ids.indexOf(TAB) + (e.key === "ArrowRight" ? 1 : -1); TAB = ids[(i + ids.length) % ids.length]; CTX = null; renderTabs(); renderTable(); $("#tabs").querySelector(`[data-s="${TAB}"]`).focus(); };
+}
+function rowsForView(){
+  const s = SPEC.sources[TAB], d = DATA[TAB];
+  const showCols = (s.detailColumns && s.detailColumns.length ? s.detailColumns : d.columns).filter(c => d.columns.includes(c));
+  const idx = showCols.map(c => d.columns.indexOf(c));
+  let items = KEPT[TAB] || [];
+  let flags = null;
+  if (CTX) { const k = KPI(CTX.kpi); flags = R.flags[k.id]; items = items.filter(it => it.m === CTX.month && flags.has(it.r)); }
+  else items = items.filter(it => it.m === MONTH);
+  const q = norm($("#q").value);
+  if (q) items = items.filter(it => idx.some(i => norm(it.r[i]).includes(q)));
+  let rows = items.map(it => ({cells: idx.map(i => it.r[i]), neg: flags ? flags.get(it.r) === 0 : false}));
+  if (SORT.col != null) {
+    const c = SORT.col;
+    rows.sort((a, b) => { const x = a.cells[c], y = b.cells[c]; const nx = num(x), ny = num(y);
+      const r = (nx != null && ny != null) ? nx - ny : String(x).localeCompare(String(y)); return r * SORT.dir; });
+  } else if (flags) rows.sort((a, b) => (b.neg ? 1 : 0) - (a.neg ? 1 : 0));
+  return {cols: showCols, rows};
+}
+function renderTable(){
+  const {cols, rows} = rowsForView();
+  const t = $("#tbl");
+  t.innerHTML = `<thead><tr>${cols.map((c, i) => `<th scope="col" tabindex="0" data-i="${i}" aria-sort="${SORT.col === i ? (SORT.dir > 0 ? "ascending" : "descending") : "none"}">${esc(c)}</th>`).join("")}</tr></thead>
+    <tbody>${rows.slice(0, LIMIT).map(r => `<tr class="${r.neg ? "neg" : ""}">${r.cells.map(v => `<td>${esc(v)}</td>`).join("")}</tr>`).join("") || `<tr><td colspan="${cols.length}">No records in this range</td></tr>`}</tbody>`;
+  t.querySelectorAll("th").forEach(th => { const go = () => { const i = +th.dataset.i; SORT = {col: i, dir: SORT.col === i ? -SORT.dir : 1}; renderTable(); t.querySelector(`th[data-i="${i}"]`).focus(); };
+    th.onclick = go; th.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } }; });
+  $("#more").innerHTML = `${rows.length.toLocaleString("en-GB")} records${rows.length > LIMIT ? ` · showing ${LIMIT}` : ""}${rows.length > LIMIT ? ` <button type="button" id="btnMore">Show 500 more</button>` : ""}${CTX ? " · rows below target / missed are shaded" : ""}`;
+  const bm = $("#btnMore"); if (bm) bm.onclick = () => { LIMIT += 500; renderTable(); };
+  $("#ctx").innerHTML = CTX ? `<span class="chip">${esc(KPI(CTX.kpi).label)} · ${mLabel(CTX.month)} <button type="button" aria-label="Clear filter" id="ctxX">×</button></span>` : `<span class="chip">${mLabel(MONTH)}</span>`;
+  const x = $("#ctxX"); if (x) x.onclick = () => { CTX = null; renderTable(); };
+  $("#live").textContent = `${rows.length} records shown`;
+}
+function openDetails(kpi, month, noScroll){
+  const k = KPI(kpi); TAB = k.source; CTX = {kpi, month}; SORT = {col: null, dir: 1}; LIMIT = 200;
+  renderTabs(); renderTable();
+  if (!noScroll) $("#details").scrollIntoView({behavior: "smooth", block: "start"});
+}
+function exportCsv(){
+  const {cols, rows} = rowsForView();
+  const q = v => /[",;\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
+  const text = [cols.map(q).join(","), ...rows.map(r => r.cells.map(q).join(","))].join("\r\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["﻿" + text], {type: "text/csv"}));
+  a.download = `${TAB}_${CTX ? CTX.kpi + "_" + CTX.month : MONTH}.csv`; a.click();
+}
+
+/* ------------------------------------------------------------ tooltip */
+function tip(e, html){
+  const t = $("#tip"); t.innerHTML = html; t.style.opacity = 1;
+  const r = e.target.getBoundingClientRect(), tw = t.offsetWidth, th = t.offsetHeight;
+  let left = r.left + r.width / 2 - tw / 2, top = r.top - th - 8;
+  left = Math.max(8, Math.min(left, innerWidth - tw - 8));
+  if (top < 8) top = r.bottom + 8;
+  t.style.left = left + "px"; t.style.top = top + "px";
+}
+function hideTip(){ $("#tip").style.opacity = 0; }
+
+/* ------------------------------------------------------------ loading CSV in the page */
+function showDrop(){
+  $("#dropList").innerHTML = Object.values(SPEC.sources).map(s => `<li>${esc(s.file)} — needs columns: ${esc([s.date, ...(s.filters || []).map(f => f.column)].join(", "))}</li>`).join("");
+  $("#drop").style.display = "flex";
+}
+async function loadFiles(files){
+  const next = DATA ? {...DATA} : {}; const msgs = [];
+  for (const f of files) {
+    const rows = parseCSV(await f.text()); if (!rows.length) continue;
+    const header = rows[0].map(h => h.trim());
+    const sid = Object.keys(SPEC.sources).find(s => norm(SPEC.sources[s].file) === norm(f.name))
+      || Object.keys(SPEC.sources).find(s => { const src = SPEC.sources[s]; return [src.date, ...(src.filters || []).map(x => x.column), ...SPEC.kpis.filter(k => k.source === s).map(k => k.column)].every(c => header.includes(c)); });
+    if (!sid) { msgs.push(`${f.name}: not recognised`); continue; }
+    next[sid] = {columns: header, rows: rows.slice(1), file: f.name, total: rows.length - 1};
+  }
+  const missing = Object.keys(SPEC.sources).filter(s => !next[s]);
+  DATA = next;
+  if (missing.length) { $("#dropList").innerHTML += `<li style="color:var(--status-critical)">Still missing: ${missing.map(s => esc(SPEC.sources[s].file)).join(", ")} ${msgs.length ? "· " + esc(msgs.join("; ")) : ""}</li>`; return; }
+  for (const [sid, s] of Object.entries(SPEC.sources)) {
+    const need = [s.date, ...(s.filters || []).map(f => f.column), ...SPEC.kpis.filter(k => k.source === sid).flatMap(k => [k.column, ...(k.where || []).map(w => w.column)])].filter(Boolean);
+    const miss = need.filter(c => !DATA[sid].columns.includes(c));
+    if (miss.length) { alertBox(`File “${DATA[sid].file}” has no column(s): ${miss.join(", ")}. Available: ${DATA[sid].columns.join(", ")}.`); return; }
+    delete DATA[sid].dateOrder;
+  }
+  $("#drop").style.display = "none"; boot(false);
+}
+function alertBox(msg){ $("#dropList").innerHTML += `<li style="color:var(--status-critical)">${esc(msg)}</li>`; }
+
+/* ------------------------------------------------------------ boot */
+function rerender(){ renderInsights(); renderPanels(); renderTable(); }
+function renderFilters(){
+  const host = $("#gfilters"), gs = (SPEC.globalFilters || []).filter(g => Object.entries(g.columns || {}).some(([sid, c]) => DATA[sid]?.columns.includes(c)));
+  if (!gs.length) { host.hidden = true; return; }
+  host.hidden = false;
+  const values = g => { const set = new Map(); for (const [sid, c] of Object.entries(g.columns)) { const d = DATA[sid]; if (!d) continue; const i = d.columns.indexOf(c); if (i < 0) continue; const fl = (SPEC.sources[sid].filters || []).map(f => [d.columns.indexOf(f.column), f]); for (const r of d.rows) { if (!fl.every(([j, f]) => match(r[j], f))) continue; const v = String(r[i] ?? "").trim(); if (v) set.set(v, (set.get(v) || 0) + 1); } } return [...set].sort((a, b) => b[1] - a[1]).slice(0, 12).map(x => x[0]); };
+  const any = Object.values(SEL).some(v => v.length);
+  host.innerHTML = gs.map(g => `<div class="g"><b>${esc(g.label || g.id)}</b>${values(g).map(v => `<button type="button" data-g="${esc(g.id)}" data-v="${esc(v)}" aria-pressed="${(SEL[g.id] || []).includes(v)}">${esc(v)}</button>`).join("")}</div>`).join("") + (any ? `<button type="button" class="clear" id="gclear">Clear filters</button>` : "");
+  host.querySelectorAll("button[data-g]").forEach(b => b.onclick = () => { const cur = new Set(SEL[b.dataset.g] || []); cur.has(b.dataset.v) ? cur.delete(b.dataset.v) : cur.add(b.dataset.v); SEL[b.dataset.g] = [...cur]; applyFilters(); });
+  const c = $("#gclear"); if (c) c.onclick = () => { SEL = {}; applyFilters(); };
+}
+function applyFilters(){
+  R = compute(); const any = Object.values(SEL).some(v => v.length);
+  if (any) { $("#check").textContent = "filtered view · computed in browser"; $("#check").className = "badge"; } else crossCheck();
+  if (!R.months.includes(MONTH)) MONTH = R.months[R.months.length - 1];
+  renderFilters(); rerender(); renderHow();
+  $("#live").textContent = any ? "Filters applied: " + Object.entries(SEL).filter(([, v]) => v.length).map(([k, v]) => k + " = " + v.join(", ")).join("; ") : "Filters cleared";
+}
+function boot(usePre = true){
+  R = compute();
+  if (usePre) crossCheck(); else { $("#check").textContent = "computed in browser"; $("#check").className = "badge"; }
+  render();
+}
+$("#month").onchange = e => { MONTH = e.target.value; CTX = null; rerender(); };
+$("#q").oninput = () => { LIMIT = 200; renderTable(); };
+$("#btnCsv").onclick = exportCsv;
+$("#btnPrint").onclick = () => print();
+$("#btnLoad").onclick = showDrop;
+$("#file").onchange = e => loadFiles([...e.target.files]);
+document.addEventListener("dragover", e => { e.preventDefault(); $("#drop").style.display = "flex"; });
+document.addEventListener("drop", e => { e.preventDefault(); loadFiles([...e.dataTransfer.files]); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") { if (DATA) $("#drop").style.display = "none"; hideTip(); } });
+function start(){
+  if (SPEC.mock) { $("#mock").hidden = false; setTimeout(() => $("#mock").hidden = true, 6000); $("#mockX").onclick = () => $("#mock").hidden = true; }
+  if (DATA) boot(true); else { $("#title").textContent = SPEC.title || "KPI dashboard"; $("#check").textContent = "waiting for data"; showDrop(); }
+}
+if (SPEC) start();
+else {
+  $("#specbox").style.display = "flex";
+  $("#specGo").onclick = () => { try { const t = $("#specText").value.replace(/^[^{]*/, "").replace(/[^}]*$/, ""); SPEC = JSON.parse(t); if (!SPEC.sources || !SPEC.kpis || !SPEC.panels) throw new Error("spec needs sources, kpis and panels"); $("#specbox").style.display = "none"; start(); } catch (e) { $("#specErr").textContent = "Not a valid spec: " + e.message; } };
+}
+</script>
+</body>
+</html>

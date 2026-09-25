@@ -1,0 +1,7 @@
+node_modules/
+app/workspace/
+itsm-workspace/
+data/private/
+_site/
+*.plugin
+.DS_Store

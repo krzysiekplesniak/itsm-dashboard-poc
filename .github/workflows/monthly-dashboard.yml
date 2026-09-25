@@ -1,0 +1,39 @@
+# Wave 4: the monthly dashboard without a human. Use ONLY in a PRIVATE repository (real data).
+# Put the month's exports in data/private/<YYYY-MM>/ (or let an upstream job drop them there), then run.
+name: monthly-dashboard
+on:
+  workflow_dispatch:
+    inputs:
+      folder: { description: 'folder with the CSV exports', default: 'data/private/latest' }
+  schedule:
+    - cron: '0 6 3 * *'   # 3rd of each month, 06:00 UTC
+jobs:
+  build:
+    if: github.event.repository.private
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Build + verify (same engine as the app and the plugin)
+        run: |
+          DIR="${{ github.event.inputs.folder || 'data/private/latest' }}"
+          ls "$DIR"/*.csv
+          [ -f itsm-workspace/spec.json ] || mkdir -p itsm-workspace
+          [ -f data/private/spec.json ] && cp data/private/spec.json itsm-workspace/spec.json || true
+          node plugin/scripts/itsm.mjs add --ws itsm-workspace "$DIR"/*.csv
+          node plugin/scripts/itsm.mjs scan --ws itsm-workspace
+          node plugin/scripts/itsm.mjs profile --ws itsm-workspace > /dev/null
+          [ -f itsm-workspace/spec.json ] || node plugin/scripts/itsm.mjs propose --ws itsm-workspace
+          node plugin/scripts/itsm.mjs build --ws itsm-workspace
+          node plugin/scripts/itsm.mjs verify --ws itsm-workspace
+          node plugin/scripts/itsm.mjs findings --ws itsm-workspace > itsm-workspace/findings.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: itsm-dashboard-${{ github.run_number }}
+          path: |
+            itsm-workspace/dashboard.html
+            itsm-workspace/verify.md
+            itsm-workspace/findings.json
+            itsm-workspace/pii_report.md
+          retention-days: 90

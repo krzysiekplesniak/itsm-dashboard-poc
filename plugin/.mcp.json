@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "itsm-engine": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.mjs"],
+      "env": { "ITSM_WORKSPACE": "itsm-workspace" }
+    }
+  }
+}

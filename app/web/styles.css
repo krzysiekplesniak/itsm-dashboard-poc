@@ -1,0 +1,33 @@
+:root{--bg:#F4F5F7;--card:#fff;--border:#DADDE3;--ink:#1F2430;--ink2:#5B6272;--muted:#8A90A0;--accent:#7C5CD6;--accent-ink:#fff}
+*{box-sizing:border-box}html,body{height:100%}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:16px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.brand{display:flex;flex-direction:column}.brand .sub{color:var(--ink2);font-size:12px}
+.steps{display:flex;gap:4px;list-style:none;margin:0;padding:0;flex:1;flex-wrap:wrap}.steps li{font-size:12px;padding:4px 10px;border-radius:12px;background:#EEF0F3;color:var(--ink2)}
+.steps li.done{background:#E6E0F8;color:#4B3A8C}.steps li.on{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.mode{font-size:12px;padding:4px 10px;border-radius:12px;border:1px solid var(--border)}.mode.copilot{background:#E7F6EC;border-color:#9FD7B1;color:#0B5F2C}.mode.offline{background:#FFF4E5;border-color:#F5C27A;color:#7A4B00}
+.wrap{flex:1;display:grid;grid-template-columns:minmax(360px,40%) 1fr;min-height:0}
+.chat{display:flex;flex-direction:column;border-right:1px solid var(--border);min-height:0;background:#FAFAFB}
+.tools{display:flex;gap:6px;padding:10px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:#fff}
+.btn{display:inline-block;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none}.btn.ghost{background:#fff;color:var(--accent)}.btn:disabled{opacity:.5;cursor:default}
+.msgs{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:92%;padding:8px 12px;border-radius:10px;background:#fff;border:1px solid var(--border)}.msg.user{align-self:flex-end;background:#EFEAFB;border-color:#D8CDF5}.msg.sys{align-self:center;background:none;border:0;color:var(--muted);font-size:12px}
+.msg table{border-collapse:collapse;margin:6px 0;font-size:12px}.msg td,.msg th{border:1px solid var(--border);padding:3px 6px;text-align:left}.msg th{background:#F1F2F5}
+.msg code{background:#F1F2F5;padding:1px 4px;border-radius:4px;font-size:12px}.msg p{margin:4px 0}.msg ul{margin:4px 0;padding-left:18px}
+.msg .toolchip{display:inline-block;font-size:11px;color:var(--ink2);background:#F1F2F5;border-radius:10px;padding:1px 8px;margin:2px 4px 2px 0}
+.input{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border);background:#fff}.input textarea{flex:1;resize:none;font:inherit;padding:8px;border:1px solid var(--border);border-radius:6px}
+.preview{display:flex;flex-direction:column;min-height:0}.pbar{display:flex;gap:6px;align-items:center;padding:10px;background:#fff;border-bottom:1px solid var(--border)}.spacer{flex:1}
+iframe{flex:1;border:0;width:100%;background:#fff}
+@media (max-width:900px){.wrap{grid-template-columns:1fr;grid-template-rows:60vh 80vh}}
+
+/* Tryb embed: czat w wysuwanym panelu dashboardu */
+body.embed .preview{display:none}body.embed .wrap{grid-template-columns:1fr}body.embed .chat{border-right:0}
+body.embed .top{padding:6px 10px;gap:8px}body.embed .brand{display:none}body.embed .steps li{font-size:10.5px;padding:2px 6px}
+body.embed .tools{padding:6px}body.embed .btn{padding:4px 8px;font-size:12px}body.embed .msg{max-width:100%}
+
+.msg .thinking{color:var(--muted);font-size:12px;font-style:italic}
+.ctxchip{margin:0 10px;padding:6px 10px;background:#F1EEFB;border:1px solid #D8CDF5;border-radius:8px;font-size:12px;color:#4B3A8C;display:flex;align-items:center;gap:6px}.ctxchip b{flex:1}.ctxchip button{border:0;background:none;font-size:16px;cursor:pointer;color:#4B3A8C}
+.vtabs{display:flex;gap:4px;align-items:center;padding:6px 10px;background:#FAFAFB;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.vt{border:1px solid var(--border);background:#fff;border-radius:8px 8px 0 0;padding:5px 12px;font:inherit;font-size:12px;cursor:pointer;color:var(--ink2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vt.on{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}.vtabs input{font:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;width:150px}
+body.embed .vtabs{display:none}
+.btn:focus-visible,.vt:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid #7C5CD6;outline-offset:2px}

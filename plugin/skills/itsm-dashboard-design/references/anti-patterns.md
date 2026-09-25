@@ -1,0 +1,11 @@
+# Anti-patterns (if the dashboard matches one, fix it)
+- Everything red or everything green — status loses meaning; red only below target.
+- A % without its population (show counts; flag < 10).
+- Two y-axes on one chart.
+- Pie chart for groups; rainbow palettes; series coloured by rank (colours jump when filtered).
+- Numbers typed by the model into HTML text instead of computed from data.
+- Values copied from the reference screenshot.
+- Missing data shown as 0.
+- Six or more widgets for one persona.
+- Tooltips cut at the screen edge; tables that cannot be sorted; nothing happens on click.
+- "Insights" that restate the number without a comparison (target, previous month, last year, group).

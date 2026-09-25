@@ -1,0 +1,19 @@
+{
+  "name": "itsm-dashboard-kit",
+  "version": "0.3.0",
+  "description": "ITSM / Service Desk KPI dashboards from CSV exports: domain knowledge, data understanding, Lab 2 KPI analyzer, design reference analyzer, grill-me interview, verified clickable HTML, insights and a learning loop.",
+  "author": {
+    "name": "ITSM Dashboard Kit contributors"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "itsm",
+    "service-desk",
+    "bmc-helix",
+    "kpi",
+    "dashboard",
+    "sla",
+    "fcr",
+    "csat"
+  ]
+}

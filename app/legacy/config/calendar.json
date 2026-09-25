@@ -1,0 +1,53 @@
+{
+  "name": "Luxembourg business calendar (default)",
+  "timezone": "Europe/Luxembourg",
+  "startHour": 8,
+  "endHour": 18,
+  "workdays": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "holidays": {
+    "rules": "LU",
+    "dates": [
+      "2025-01-01",
+      "2025-04-21",
+      "2025-05-01",
+      "2025-05-09",
+      "2025-05-29",
+      "2025-06-09",
+      "2025-06-23",
+      "2025-08-15",
+      "2025-11-01",
+      "2025-12-25",
+      "2025-12-26",
+      "2026-01-01",
+      "2026-04-06",
+      "2026-05-01",
+      "2026-05-09",
+      "2026-05-14",
+      "2026-05-25",
+      "2026-06-23",
+      "2026-08-15",
+      "2026-11-01",
+      "2026-12-25",
+      "2026-12-26",
+      "2027-01-01",
+      "2027-03-29",
+      "2027-05-01",
+      "2027-05-06",
+      "2027-05-09",
+      "2027-05-17",
+      "2027-06-23",
+      "2027-08-15",
+      "2027-11-01",
+      "2027-12-25",
+      "2027-12-26"
+    ],
+    "remove": []
+  },
+  "_help": "Edit this file and restart the server. rules \"LU\" = Luxembourg public holidays computed for every year (incl. Easter Monday, Ascension, Whit Monday); set to null to use only the dates list. dates = explicit days off (YYYY-MM-DD). remove = days to treat as working days. workdays: 0=Sun … 6=Sat. Times are the local time of the export."
+}

@@ -33,6 +33,7 @@ a prompt pack for chats without skills, and the chat agent on Copilot infrastruc
 | `itsm-learn` | Writes lessons to ORG_PROFILE.md / LEARNINGS.md / proposed skill edits ("training") | new |
 | `itsm-intent-router` | 12 intents + 15 typical manager questions → answer path | agent v0.2 |
 | `itsm-brief` | BRIEF.md (10 sections) from the workspace | agent v0.2 brief |
+| `itsm-ui-design` | UI guardian + UX/a11y audit: mockup before code, 25 rules, tokens, measurement, MagicPath CLI workflow | author's fly4adventure-design + magicpath-parity |
 
 ## Install
 

@@ -6,7 +6,7 @@ Usage: python scripts/build_prompt_pack.py [--out prompt-pack]
 import argparse, os, re
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ORDER = ["itsm-dashboard", "itsm-domain", "itsm-data-reader", "itsm-anonymize", "itsm-kpi-analyzer", "itsm-design-reference",
-         "itsm-dashboard-design", "itsm-html-builder", "itsm-insights", "itsm-verify", "itsm-grill-me", "itsm-learn", "itsm-intent-router", "itsm-brief"]
+         "itsm-dashboard-design", "itsm-html-builder", "itsm-insights", "itsm-verify", "itsm-grill-me", "itsm-learn", "itsm-intent-router", "itsm-brief", "itsm-ui-design"]
 ap = argparse.ArgumentParser(); ap.add_argument("--out", default=os.path.join(ROOT, "prompt-pack")); a = ap.parse_args()
 os.makedirs(a.out, exist_ok=True)
 parts = ["# ITSM Dashboard Kit — knowledge pack\n\nAll instructions of the kit in one file, for chats without skill support. "

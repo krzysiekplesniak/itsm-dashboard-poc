@@ -25,6 +25,7 @@
     "skills/itsm-intent-router",
     "skills/itsm-kpi-analyzer",
     "skills/itsm-learn",
+    "skills/itsm-ui-design",
     "skills/itsm-verify"
   ],
   "mcpServers": ".mcp.json"

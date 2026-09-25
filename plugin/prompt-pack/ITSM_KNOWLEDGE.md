@@ -1113,3 +1113,184 @@ The brief replaces a hand-written specification: the owner never has to write on
 Before generating: make sure every decision from the conversation was recorded (`itsm_record_decision`), and that
 verification ran on the final build. After generating: tell the user which assumptions are still open (section 8)
 — those are the questions for the next meeting with the owner.
+
+
+---
+
+<!-- skill: itsm-ui-design -->
+# ITSM UI design — guardian for building and auditing
+
+Every new screen, panel or component must look as if the same designer built it. History of the source project:
+4–5 rejected iterations came from building without this knowledge. Do not guess — read the references.
+
+## Setup (always)
+1. Read `references/design-rules.md` (rules that filter every UI proposal) and `itsm-dashboard-design` (KPI page rules).
+2. Decide the mode: **BUILD** (build or change UI) or **AUDIT** (`/ux-audit`, review). Unclear → ask one sentence.
+3. Decide where the code lives: the dashboard template (`itsm-html-builder/templates/dashboard.html`), the app UI
+   (`app/web/`), or a MagicPath canvas component. Rule: **local = workshop, MagicPath = showcase** — iterate locally,
+   submit to MagicPath only at milestones (`references/magicpath-workflow.md`).
+
+## BUILD — order is not negotiable
+1. **Reference.** Establish the visual reference: an existing element (sibling look) or the user's reference
+   (screenshot, MagicPath design). Analyse facts vs interpretation, what to adapt, what NOT to copy (`itsm-design-reference`).
+2. **Mockup before code.** Show a mockup on the user's REAL (or realistic synthetic) data, desktop 1280 + mobile 430.
+   Fastest path: a MagicPath canvas component (`code start → code submit --wait`) or an HTML mockup. Wait for approval.
+3. **Close decisions before code.** Proportions, what goes in a card, what opens on click, responsiveness — ask first.
+4. **Build.** Tokens only (`references/tokens.md`), shared components, no improvised colours; numbers still come
+   from the engine — the design never changes how values are computed.
+5. **Verify live** with `references/measurement.md`: contrast by canvas, real Tab focus, 44×44 targets, click-through,
+   screenshots at 430 and 1280. Run `npm test` (app) and the self-test (plugin) — the numbers must stay identical.
+6. **Report** what was built and measured, with numbers.
+
+## AUDIT (`/ux-audit`)
+Say which reference you measure against — they carry different weight:
+1. **wcag** — objective WCAG 2.1 AA thresholds (4.5:1 text, 3:1 UI/large text, 44 px targets), methods from measurement.md only.
+2. **design-system** — internal consistency: hard-coded colours bypassing tokens, re-typed classes, off-scale spacing.
+3. **heuristic** — expert judgement (hierarchy, cognitive load, copy) — always labelled as opinion.
+Findings with weight (Critical / Major / Minor) and evidence. Fix low-risk ones immediately and re-measure; ask before risky ones (palette, restructuring).
+
+## Invariants (short)
+Colours only from tokens · status colours only for status, series colours only for identity · text on accent ≥ 4.5:1 ·
+focus ring ≠ accent · interactive ≥ 44×44 · one primary action per view · change of a UI pattern = grep all
+occurrences before submit · every clickable element shows a pointer · mockup before code · verify what is live.
+
+| Reference | When |
+|---|---|
+| `references/design-rules.md` | always at start |
+| `references/tokens.md` | before using any colour, font, radius, spacing |
+| `references/measurement.md` | before any measurement or verification |
+| `references/magicpath-workflow.md` | before working with MagicPath (login, canvas, code start/submit, parity) |
+
+
+<!-- itsm-ui-design/references/design-rules.md -->
+# Design rules (ITSM dashboard + agent app)
+
+Adapted from 29 rules learned the hard way in the author's previous product (Trip Now / Fly4Adventure) and filtered
+for a KPI dashboard used by a Service Desk manager. Numbers are stable — refer to them by number.
+
+## Structure and navigation
+1. **Fewer screens, deeper not wider.** Drill-down in a modal / details section / inline expand before a new page.
+2. **Never push the user out of the app without reason.** Records open in the details table, not in another tool.
+3. **Back returns where the user came from** (remember the entry point; no hard-coded return).
+4. **Expanding an item = teaser leading to the full view**, not a copy of the content.
+
+## Copy
+5. **Positive, actionable copy.** "What to do now" beats warnings; errors say what happened and how to fix it.
+6. **Insight titles state the finding**, not the metric name ("FCR fell 3.1 pp to 78.2 %").
+
+## Hierarchy and layout
+7. **What must be easy to reach comes first** (findings strip above panels; month selector in the header).
+8. **Compact, not crowded** — the user corrects in both directions; measure spacing, do not eyeball it.
+9. **Visual weight of an action = its business weight.** Solid primary button only for the one main action
+   (build, export); everything else is an outlined pill, a text link or a chip.
+10. **One highlighted element per view** (accent outline = "this concerns you now"); a wall of highlights means none.
+
+## Consistency and components
+11. **Colours strictly from tokens.** Purple, black or green appearing from nowhere = a bug, not a variant.
+12. **Shared components by reuse**, never re-typed classes (card, chip, button, badge have one definition).
+13. **One standard size per control type**; no one-off height overrides.
+14. **Changing a UI pattern = grep all occurrences first**, classify (same meaning → change, different → keep and note),
+    verify every changed place live.
+15. **Every clickable element shows a pointer** (global CSS rule, not per element).
+16. **Filters that change content variants are segmented controls**, not CTA-sized chips.
+
+## Accessibility (WCAG 2.1 AA — hard thresholds)
+17. **Text contrast ≥ 4.5:1**, large text and UI boundaries ≥ 3:1; recompute after every palette change (canvas method).
+18. **Interactive targets ≥ 44×44 px** (cards, chips, table headers, filter pills).
+19. **Focus ring token ≠ accent token** (a ring in the accent colour on an accent element is invisible).
+20. **Every icon-only control has a visible label or aria-label**; decorative SVG is aria-hidden.
+
+## Dashboard-specific (from itsm-dashboard-design)
+21. **Red only for what needs action now**; status (critical/warning/met) never used as series colours.
+22. **One y-axis per chart**; no pies; target line dashed; low volume flagged; missing data = "n/a", never 0.
+23. **Numbers are never designed**: a redesign changes presentation only — `npm test` and the plugin self-test
+    must return the same values before and after.
+
+## Process
+24. **Mockup before code, decisions on the mockup** — the cheapest elimination of rejected iterations.
+25. **Always verify what is live** (after a MagicPath submit the working directory is stale; hosts add their own chrome).
+
+
+<!-- itsm-ui-design/references/magicpath-workflow.md -->
+# MagicPath workflow (CLI `magicpath-ai`) for the ITSM dashboard
+
+**Local = workshop, MagicPath = showcase.** MagicPath is where the user sees and approves the look (clickable
+prototype, canvas for exploring variants, share link). Code iterations happen locally; submit to MagicPath at milestones.
+Pure MagicPath without these skills = a sketchbook for inspiration only, never the final screen (it does not know the rules or tokens).
+
+## First steps
+```bash
+npx -y magicpath-ai info -o json            # auth + context
+npx -y magicpath-ai login                   # browser login — the USER signs in
+npx -y magicpath-ai whoami -o json
+npx -y magicpath-ai list-projects -o json   # find or create the project
+npx -y magicpath-ai create-project --name "ITSM Dashboard" -o json
+```
+Before generating anything: read/build the prototype catalogue `docs/prototypes/KATALOG-MAGICPATH.md`
+(`list-components <projectId> -o json --sort-by createdAt --order desc`) and add an entry after every new prototype
+(descriptive name, generatedName, date, group, which variant became canon).
+
+## Theme = our tokens
+`list-themes` usually returns only public defaults. Do NOT use MagicPath's grey scaffold: copy our tokens
+(`tokens.md`) into the canvas component's `src/index.css` `:root` before writing the component.
+
+## Author a canvas component (mockup of the dashboard on realistic data)
+```bash
+npx -y magicpath-ai code start --project <projectId> --dir ./mp-work --name "ITSM dashboard — monthly" --width 1440 --height 900 -o json
+# edit only: src/App.tsx (theme), src/index.css (tokens), src/components/generated/**, assets/**
+npx -y magicpath-ai code submit --dir ./mp-work --wait -o json      # status must be "completed"
+npx -y magicpath-ai share <projectId> -o json                        # link for the user
+```
+Design defaults on the canvas: no device mockups, responsive, centered, fully interactive (state, hover, focus).
+Mobile variant: `--width 430 --height 932`. Every edit = a fresh `code start` (working dirs are stale after submit).
+Batch edits into one submit (30–60 s round trip). Read-only export: `code context <componentId> --dir ./mp-read -o json`.
+
+## From MagicPath back into the kit (parity)
+1. Lock the approved revision (`selection -o json` → `selectedRevisionId`).
+2. `inspect <generatedName> -o json` — read the source; translate layout, spacing, type and tokens into
+   `dashboard.html` (vanilla JS/CSS — do not add React to the single-file dashboard) or `app/web/`.
+3. Parity check: screenshots at 430/1280 side by side with the approved revision; DOM/runtime evidence before changes;
+   record intentional deviations. Visual parity ≠ workflow regression — `npm test` covers the flows.
+4. Numbers: run the tests — the design never touches computation.
+
+
+<!-- itsm-ui-design/references/measurement.md -->
+# Measurement methods (each replaced a naive method that lied)
+
+1. **Contrast by canvas, not getComputedStyle** — `oklch()`/semi-transparent backgrounds are not parsed reliably.
+   Resolve colours by painting on a 1×1 canvas (`fillStyle` → `getImageData`), composite the background chain on
+   white, compute WCAG luminance; thresholds 4.5 (text) / 3.0 (large text ≥ 24 px or ≥ 18.66 px bold, UI, focus ring).
+2. **Focus with a real Tab key**, not `.focus()` (`:focus-visible` only reacts to keyboard) — Playwright
+   `page.keyboard.press('Tab')`, then read `document.activeElement` and measure the ring against the element background.
+3. **Touch targets with getBoundingClientRect** on the clickable element itself (≥ 44×44).
+4. **Automatic audits scoped to the component** — on a MagicPath host the page adds its own chrome
+   ("Made with MagicPath", remix, cookies); findings outside the component subtree are host noise. Full Lighthouse only
+   on our own deploy (localhost / Pages / Codespaces).
+5. **Accessible names**: `aria-label || title || innerText` non-empty on every interactive element.
+6. **Click-through**: walk real paths (card → details → back; filter → values → clear) after every navigation change.
+7. **Screenshots at ~430 px and ~1280 px**; compare with the approved mockup; proportions from bounding boxes.
+8. **Numbers unchanged**: `cd app && npm test` and `bash plugin/scripts/selftest.sh` green before and after a redesign.
+
+
+<!-- itsm-ui-design/references/tokens.md -->
+# Tokens (current template) — change values here and in the template together
+
+| Token | Value | Use |
+|---|---|---|
+| `--bg` | #F4F5F7 | page background |
+| `--surface` | #FFFFFF | cards, panels |
+| `--panel-head` | #E9EBEF | panel header bar |
+| `--border` / `--grid` | #D9DCE1 / #ECEEF1 | borders / chart grid |
+| `--text` / `--text-2` / `--text-3` | #1D2433 / #4A5264 / #6B7280 | text levels |
+| `--accent` | #5B3FB0 | brand accent (links, focus is NOT accent) |
+| `--s1…--s4` | #5B3FB0 #1F6FB5 #D9822B #0F8B8D | series identity, fixed order |
+| `--status-critical` | #C62828 | below target |
+| `--status-high` | #EF6C00 | near target (warning) |
+| `--status-met` | #2E7D32 | target met |
+| `--status-pending` | #1565C0 | info, active filter, focus ring |
+| `--status-neutral` | #5F6368 | empty state, secondary |
+| `--font-kpi` / `--font-label` / `--font-meta` | 600 34px / 600 14px / 400 12px system-ui | number / label / meta |
+| `--radius` / `--gap` | 10px / 16px | panel radius / grid gap |
+
+Spec override: `spec.theme` may set any `--*` token (from DESIGN.md or a MagicPath theme via `get-theme`).
+A MagicPath redesign must map its theme to these names — rename nothing, swap values.
